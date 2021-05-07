@@ -1,18 +1,7 @@
-%% Lectura de Audacity
-filename = 'Audio_C.wav';
-[x, Fs] = audioread(filename);
-Rx_signal = x;
-energy_threshold = 0.05; %Modificado para lena completa, valor para lena recortada 0.1
-start = find(abs(Rx_signal) > energy_threshold,3,'first');
-stop = find(abs(Rx_signal) > energy_threshold,1,'last');
-Rx_signal = Rx_signal(start:stop);
-Rx_signal = Rx_signal';
-%figure;stem(Rx_signal(1:16*mp));
-
 %% Desarrollo del Match Filter
-Fs = 96e3;
+Fs = 192e3;
 Ts = 1/Fs;
-beta = 0.5;
+beta = 0.2;
 B = 20000;
 Rb = 2*B/(1+beta);
 mp = ceil(Fs/Rb);
@@ -23,11 +12,23 @@ D = 6;
 type = 'srrc';
 E = Tp;
 [pbase ~] = rcpulse(beta, D, Tp, Ts, type, E);
-% Match
+
+%% Lectura de Audacity
+filename = 'Lena.wav';
+[x, Fs] = audioread(filename);
+Rx_signal = x;
+energy_threshold = 0.1; %Modificado para lena completa, valor para lena recortada 0.1
+start = find(abs(Rx_signal) > energy_threshold,3,'first');
+stop = find(abs(Rx_signal) > energy_threshold,1,'last');
+Rx_signal = Rx_signal(start:stop);
+Rx_signal = Rx_signal';
+figure;stem(Rx_signal(1:16*mp));
+
+%% Match
 h = fliplr(pbase);
 Sig_fil = (1/mp)*conv(h',Rx_signal);
 delay = (D*mp)/2;
-%figure; stem(Sig_fil(1:16*mp));
+figure; stem(Sig_fil(1:16*mp));
 
 %% Comprobar que la señal este bien recibida mediante el diagrama de ojo
 ed = comm.EyeDiagram('SampleRate', Fs*mp, 'SamplesPerSymbol', mp);
@@ -36,7 +37,6 @@ ed(Sig_fil(delay_eye+1:end-delay_eye)');
 figure;pwelch(Sig_fil, [], [], [],Fs, 'power'),
 
 %% Sincronizador de simbolo
-
 symSync = comm.SymbolSynchronizer('TimingErrorDetector','Early-Late (non-data-aided)', 'SamplesPerSymbol',mp);
 rxSym = symSync(Sig_fil(delay+1:end)');
 release(symSync); % Liberar el objeto
@@ -53,7 +53,7 @@ SFD = [1 0 1 0 1 0 1 1]';
 MAC_D = 'F80DAC209CEF';
 MAC_S = '6C71D9591D43';
 DSA = uint8(hexToBinaryVector([MAC_D, MAC_S]))';
-load momo512.mat; img = uint8(M); 
+load lena512.mat; img = uint8(lena512); 
 size_img=de2bi(size(img),16,'left-msb');
 header= [size_img(1,:) size_img(2,:)]'; 
 payload = de2bi(img,8,'left-msb'); %usar esta de preferencia
@@ -81,10 +81,10 @@ received_1 = [-1 rxSym(1:end-1)'];
 received_2 = rxSym(1:end)';
 received((received_2 > umbral & received_1 > umbral) | (received_2 < umbral & received_1 < umbral)) = 0;
 recovered_signal = received';
-recovered_signal = recovered_signal(3:end-4);
-recovered_signal(1) = 1;
+recovered_signal = recovered_signal(2:end-3);
 [number, error] = biterr(recovered_signal, mlt3_bits);
 fprintf("BER al comparar con MLT3: %d. En : %d muestras.\n", error, number);
+
 %% Recover the audio
 enc5b4b = [0,0,0,0; 0,0,0,0; 0,0,0,0; 0,0,0,0; 0,0,0,0; 0,0,0,0;
            0,0,0,0; 0,0,0,0; 0,0,0,0; 0,0,0,1; 0,1,0,0; 0,1,0,1;
