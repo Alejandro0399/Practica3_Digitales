@@ -13,7 +13,8 @@ SFD = [1 0 1 0 1 0 1 1]';
 MAC_D = 'F80DAC209CEF';
 MAC_S = '6C71D9591D43';
 DSA = uint8(hexToBinaryVector([MAC_D, MAC_S]))';
-load momo512.mat; img = uint8(M); 
+%load lena512.mat; img = uint8(lena512);
+load momo512.mat; img = uint8(M);
 %img = img(248:247+33,245:244+45,1); % Lena eye 33x45 pixels
 imshow(img); 
 size_img=de2bi(size(img),16,'left-msb');
@@ -27,9 +28,9 @@ payload = payload(:);
 bits2Tx = [preamble; SFD; DSA; header; payload];
 
 %% Parametros para Transmitir
-Fs = 96e3;
+Fs = 192e3;
 Ts = 1/Fs;
-beta = 0.5;
+beta = 0.2;
 B = 20000;
 Rb = 2*B/(1+beta);
 mp = ceil(Fs/Rb);
