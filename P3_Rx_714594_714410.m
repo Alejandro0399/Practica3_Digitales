@@ -21,7 +21,7 @@ E = Tp;
 [pbase ~] = rcpulse(beta, D, Tp, Ts, type, E);
 
 %% Lectura de Audacity
-filename = 'Flor.wav';
+filename = 'Lena.wav';
 [x, Fs] = audioread(filename);
 Rx_signal = x;
 energy_threshold = 0.1; %Modificado para lena completa, valor para lena recortada 0.1
@@ -29,13 +29,13 @@ start = find(abs(Rx_signal) > energy_threshold,3,'first');
 stop = find(abs(Rx_signal) > energy_threshold,1,'last');
 Rx_signal = Rx_signal(start:stop);
 Rx_signal = Rx_signal';
-figure;stem(Rx_signal(1:16*mp));
+figure;stem(Rx_signal(1:16*mp)); title('Señal despues de energizacion de canal'); ylabel('Amplitud');
 
 %% Match
 h = fliplr(pbase);
 Sig_fil = (1/mp)*conv(h',Rx_signal);
 delay = (D*mp)/2;
-figure; stem(Sig_fil(1:16*mp));
+figure; stem(Sig_fil(1:16*mp)); title('Señal recibida pasada por Match Filter'); ylabel('Amplitud');
 
 %% Comprobar que la señal este bien recibida mediante el diagrama de ojo
 ed = comm.EyeDiagram('SampleRate', Fs*mp, 'SamplesPerSymbol', mp);
@@ -48,7 +48,7 @@ symSync = comm.SymbolSynchronizer('TimingErrorDetector','Early-Late (non-data-ai
 rxSym = symSync(Sig_fil(delay+1:end)');
 release(symSync); % Liberar el objeto
 figure; stem(rxSym(1:16*mp));
-scatterplot(rxSym);
+scatterplot(rxSym(2:mp:Fs));
 
 eye_diagram = comm.EyeDiagram('SampleRate', Fs*mp, 'SamplesPerSymbol', mp);
 delay_eye = round(numel(pbase)/3);
@@ -60,7 +60,7 @@ SFD = [1 0 1 0 1 0 1 1]';
 MAC_D = 'F80DAC209CEF';
 MAC_S = '6C71D9591D43';
 DSA = uint8(hexToBinaryVector([MAC_D, MAC_S]))';
-load Prueba512.mat; img = uint8(M); 
+load Lena512.mat; img = uint8(lena512); 
 size_img=de2bi(size(img),16,'left-msb');
 header= [size_img(1,:) size_img(2,:)]'; 
 payload = de2bi(img,8,'left-msb'); %usar esta de preferencia

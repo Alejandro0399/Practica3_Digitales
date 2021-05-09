@@ -13,8 +13,8 @@ SFD = [1 0 1 0 1 0 1 1]';
 MAC_D = 'F80DAC209CEF';
 MAC_S = '6C71D9591D43';
 DSA = uint8(hexToBinaryVector([MAC_D, MAC_S]))';
-%load lena512.mat; img = uint8(lena512);
-load Sir.mat; img = uint8(M);
+load lena512.mat; img = uint8(lena512);
+%load Sir.mat; img = uint8(M);
 %img = img(248:247+33,245:244+45,1); % Lena eye 33x45 pixels
 imshow(img); 
 size_img=de2bi(size(img),16,'left-msb');
